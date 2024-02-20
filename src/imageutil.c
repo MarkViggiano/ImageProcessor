@@ -297,6 +297,9 @@ imatrix* dot(imatrix* m1, imatrix* m2){
         }
     }
 
+    //This feels like bad practice for an image api, what if I want to use an original image after I subtract an image from it?
+    free_imatrix(m1);
+    free_imatrix(m2);
     return mDot;
 }
 
@@ -314,8 +317,20 @@ imatrix* dot(imatrix* m1, imatrix* m2){
 */
 imatrix* scale(imatrix* this, int width, int height, float alpha){
 
-    // FILL IN THE CODE HERE
+    if (this == NULL) return NULL;
+    if (alpha < 0.0 || alpha > 1.0) return this;
 
+    //Assume this is what they mean by the image being invalid? Makes more sense to just override the width/height parameter
+    if (this->width != width) return this;
+    if (this->height != height) return this;
+
+    for (int y = 0; y < this->height; y++) {
+        for (int x = 0; x < this->width; x++) {
+            this->r[y][x] *= alpha;
+            this->g[y][x] *= alpha;
+            this->b[y][x] *= alpha;
+        }
+    }
 
     return this;
 }
