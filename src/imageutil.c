@@ -280,9 +280,20 @@ imatrix* dot(imatrix* m1, imatrix* m2){
     mDot->height = m1->height;
     mDot->width = m2->width;  
     
+    int dotProdR = 0, dotProdG = 0, dotProdB = 0;
     for (int dY = 0; dY < mDot->height; dY++) {
         for (int dX = 0; dX < mDot->width; dX++) {
-            
+            dotProdR = 0;
+            dotProdG = 0;
+            dotProdB = 0;
+            for (int i = 0; i < m1->width; i++) {
+                dotProdR += m1->r[dY][i] * m2->r[i][dX];
+                dotProdG += m1->g[dY][i] * m2->g[i][dX];
+                dotProdB += m1->b[dY][i] * m2->b[i][dX];
+            }
+            mDot->r[dY][dX] = dotProdR;
+            mDot->g[dY][dX] = dotProdG;
+            mDot->b[dY][dX] = dotProdB;
         }
     }
 
