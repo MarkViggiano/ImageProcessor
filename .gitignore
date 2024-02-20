@@ -50,3 +50,6 @@ modules.order
 Module.symvers
 Mkfile.old
 dkms.conf
+.idea
+Mark_Viggiano_mcv71
+imageutil
