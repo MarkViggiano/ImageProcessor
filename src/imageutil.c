@@ -216,9 +216,6 @@ imatrix* add(imatrix* m1, imatrix* m2){
         }
     }
     
-    //This feels like bad practice for an image api, what if I want to use an original image after I add another one to it?
-    free_imatrix(m1);
-    free_imatrix(m2);
     return mAdded;
 }
 
@@ -254,9 +251,6 @@ imatrix* subtract(imatrix* m1, imatrix* m2) {
         }
     }
     
-    //This feels like bad practice for an image api, what if I want to use an original image after I subtract an image from it?
-    free_imatrix(m1);
-    free_imatrix(m2);
     return mSub;
 }
 
@@ -297,9 +291,6 @@ imatrix* dot(imatrix* m1, imatrix* m2){
         }
     }
 
-    //This feels like bad practice for an image api, what if I want to use an original image after I subtract an image from it?
-    free_imatrix(m1);
-    free_imatrix(m2);
     return mDot;
 }
 
@@ -324,8 +315,8 @@ imatrix* scale(imatrix* this, int width, int height, float alpha){
     if (this->width != width) return this;
     if (this->height != height) return this;
 
-    for (int y = 0; y < this->height; y++) {
-        for (int x = 0; x < this->width; x++) {
+    for (int y = 0; y < height; y++) {
+        for (int x = 0; x < width; x++) {
             this->r[y][x] *= alpha;
             this->g[y][x] *= alpha;
             this->b[y][x] *= alpha;
