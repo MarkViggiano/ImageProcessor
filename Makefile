@@ -1,16 +1,11 @@
 CC=gcc
-CFLAGS=-Wall -std=c99 -w
+CFLAGS=-Wall -std=c99 -w -m32
 LIBS=-lm #-ljpeg -lpng -ltiff
 INCLUDES=-I./stb_image
-SRC=./src/imageutil.c ./src/main.c #./src/helpers.c 
+SRC=./src/imageutil.c ./src/main.c# ./src/helpers.c
 OBJS=$(SRC:.c=.o)
 
 TARGET=imageutil
-
-# detect if the machine is a mac M1 chip and set the correct architecture
-ifeq ($(shell uname -m),arm64)
-    CFLAGS += -arch arm64
-endif
 
 all: $(TARGET)
 

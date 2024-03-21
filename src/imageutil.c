@@ -10,7 +10,8 @@
 // // define STB_IMAGE_RESIZE_IMPLEMENTATION to enable implementation of stb_image_resize functions
 // // #define STB_IMAGE_RESIZE_IMPLEMENTATION
 #include "stb_image_resize.h"
-
+#include <stdio.h>
+#include <stdlib.h>
 #include "imageutil.h"
 
 // Initialize an imatrix from an image file on disk
@@ -106,9 +107,15 @@ void init_funcptrs(imatrix* this){
 */
 imatrix* init_rgb(imatrix* this, int width, int height){
 
-    // FILL IN THE CODE HERE
+    if (this == NULL) this = (imatrix *) malloc(sizeof(imatrix));
 
-    return NULL;
+    this->r = malloc(sizeof(uint8_t) * width * height);
+    this->g = malloc(sizeof(uint8_t) * width * height);
+    this->b = malloc(sizeof(uint8_t) * width * height);
+    this->width = width;
+    this->height = height;
+
+    return this;
 }
 
 // Set the pixel data of an imatrix from an RGB byte array
@@ -208,11 +215,14 @@ imatrix* add(imatrix* m1, imatrix* m2){
     imatrix* mAdded = (imatrix *) malloc(sizeof(imatrix));
     mAdded->width = width1;
     mAdded->height = height1;
+    mAdded->r = malloc(sizeof(uint8_t) * width1 * height1);
+    mAdded->g = malloc(sizeof(uint8_t) * width1 * height1);
+    mAdded->b = malloc(sizeof(uint8_t) * width1 * height1);
     for (int y = 0; y < height1; y++) {
         for (int x = 0; x < width1; x++) {
-            mAdded->r[y][x] = m1->r[y][x] + m2->r[y][x];
-            mAdded->g[y][x] = m1->g[y][x] + m2->g[y][x];
-            mAdded->b[y][x] = m1->b[y][x] + m2->b[y][x];
+            mAdded->r[y][x] = m1->r[y][x] + m2->r[y][x] > 255 ? 255 : m1->r[y][x] + m2->r[y][x];
+            mAdded->g[y][x] = m1->g[y][x] + m2->g[y][x] > 255 ? 255 : m1->g[y][x] + m2->g[y][x];
+            mAdded->b[y][x] = m1->b[y][x] + m2->b[y][x] > 255 ? 255 : m1->b[y][x] + m2->b[y][x];
         }
     }
     
@@ -243,11 +253,14 @@ imatrix* subtract(imatrix* m1, imatrix* m2) {
     imatrix* mSub = (imatrix *) malloc(sizeof(imatrix));
     mSub->width = width1;
     mSub->height = height1;
+    mSub->r = malloc(sizeof(uint8_t) * width1 * height1);
+    mSub->g = malloc(sizeof(uint8_t) * width1 * height1);
+    mSub->b = malloc(sizeof(uint8_t) * width1 * height1);
     for (int y = 0; y < height1; y++) {
         for (int x = 0; x < width1; x++) {
-            mSub->r[y][x] = m1->r[y][x] - m2->r[y][x];
-            mSub->g[y][x] = m1->g[y][x] - m2->g[y][x];
-            mSub->b[y][x] = m1->b[y][x] - m2->b[y][x];
+            mSub->r[y][x] = m1->r[y][x] - m2->r[y][x] < 0 ? 0 : m1->r[y][x] - m2->r[y][x];
+            mSub->g[y][x] = m1->g[y][x] - m2->g[y][x] < 0 ? 0 : m1->g[y][x] - m2->g[y][x];
+            mSub->b[y][x] = m1->b[y][x] - m2->b[y][x] < 0 ? 0 : m1->b[y][x] - m2->b[y][x];
         }
     }
     
@@ -273,6 +286,9 @@ imatrix* dot(imatrix* m1, imatrix* m2){
     imatrix* mDot = (imatrix *) malloc(sizeof(imatrix));
     mDot->height = m1->height;
     mDot->width = m2->width;  
+    mDot->r = malloc(sizeof(uint8_t) * mDot->width * mDot->height);
+    mDot->g = malloc(sizeof(uint8_t) * mDot->width * mDot->height);
+    mDot->b = malloc(sizeof(uint8_t) * mDot->width * mDot->height);
     
     int dotProdR = 0, dotProdG = 0, dotProdB = 0;
     for (int dY = 0; dY < mDot->height; dY++) {
@@ -281,13 +297,28 @@ imatrix* dot(imatrix* m1, imatrix* m2){
             dotProdG = 0;
             dotProdB = 0;
             for (int i = 0; i < m1->width; i++) {
-                dotProdR += m1->r[dY][i] * m2->r[i][dX];
-                dotProdG += m1->g[dY][i] * m2->g[i][dX];
-                dotProdB += m1->b[dY][i] * m2->b[i][dX];
+
+                dotProdR += *(*(m1->r + dY) + i) * *(*(m2->r + i) + dX);
+                dotProdG += *(*(m1->g + dY) + i) * *(*(m2->g + i) + dX);
+                dotProdB += *(*(m1->b + dY) + i) * *(*(m2->b + i) + dX);
+
+                //dotProdR += m1->r[dY][i] * m2->r[i][dX];
+                //dotProdG += m1->g[dY][i] * m2->g[i][dX];
+                //dotProdB += m1->b[dY][i] * m2->b[i][dX];
             }
-            mDot->r[dY][dX] = dotProdR;
-            mDot->g[dY][dX] = dotProdG;
-            mDot->b[dY][dX] = dotProdB;
+            
+            dotProdR = (dotProdR < 0) ? 0 : dotProdR;
+            dotProdR = (dotProdR > 255) ? 255 : dotProdR;
+            dotProdG = (dotProdG < 0) ? 0 : dotProdG;
+            dotProdG = (dotProdG > 255) ? 255 : dotProdG;
+            dotProdB = (dotProdB < 0) ? 0 : dotProdB;
+            dotProdB = (dotProdB > 255) ? 255 : dotProdB;
+            *(*(mDot->r + dY) + dX) = dotProdR;
+            *(*(mDot->g + dY) + dX) = dotProdG;
+            *(*(mDot->b + dY) + dX) = dotProdB;
+            //mDot->r[dY][dX] = dotProdR;
+            //mDot->g[dY][dX] = dotProdG;
+            //mDot->b[dY][dX] = dotProdB;
         }
     }
 
