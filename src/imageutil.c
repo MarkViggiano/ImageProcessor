@@ -107,8 +107,10 @@ void init_funcptrs(imatrix* this){
 */
 imatrix* init_rgb(imatrix* this, int width, int height){
 
+    //Check to be safe!
     if (this == NULL) this = (imatrix *) malloc(sizeof(imatrix));
 
+    //Init 2d array
     this->r = malloc(sizeof(uint8_t) * width * height);
     this->g = malloc(sizeof(uint8_t) * width * height);
     this->b = malloc(sizeof(uint8_t) * width * height);
@@ -203,21 +205,27 @@ void free_imatrix(imatrix* image_matrix){
 *            Note: This memory must be freed when you're done using it.
 */
 imatrix* add(imatrix* m1, imatrix* m2){
-    if (m1 == NULL || m2 == NULL) return NULL;
+    if (m1 == NULL || m2 == NULL) {
+        fprintf(stderr, "Cannot add with a null matrix!");
+        return NULL;
+    }
 
     int height1 = m1->height;
     int width1 = m1->width;
     int height2 = m2->height;
     int width2 = m2->width;
 
-    if (height1 != height2 || width1 != width2) return NULL;
+    if (height1 != height2 || width1 != width2) {
+        fprintf(stderr, "Matrix sizes do not match for addition!");
+        return NULL;
+    }
 
-    imatrix* mAdded = (imatrix *) malloc(sizeof(imatrix));
-    mAdded->width = width1;
-    mAdded->height = height1;
-    mAdded->r = malloc(sizeof(uint8_t) * width1 * height1);
-    mAdded->g = malloc(sizeof(uint8_t) * width1 * height1);
-    mAdded->b = malloc(sizeof(uint8_t) * width1 * height1);
+    imatrix* mAdded = init_blank_rgb_image(width1, height1);
+    if (mAdded == NULL) {
+        fprintf(stderr, "Allocation for result matrix failed!");
+        return NULL;
+    }
+
     for (int y = 0; y < height1; y++) {
         for (int x = 0; x < width1; x++) {
             mAdded->r[y][x] = m1->r[y][x] + m2->r[y][x] > 255 ? 255 : m1->r[y][x] + m2->r[y][x];
@@ -242,20 +250,25 @@ imatrix* add(imatrix* m1, imatrix* m2){
 *            Note: This memory must be freed when you're done using it.
 */
 imatrix* subtract(imatrix* m1, imatrix* m2) {
-    if (m1 == NULL || m2 == NULL) return NULL;
+    if (m1 == NULL || m2 == NULL) {
+        fprintf(stderr, "Cannot subtract with a null matrix!");
+        return NULL;
+    }
     int height1 = m1->height;
     int width1 = m1->width;
     int height2 = m2->height;
     int width2 = m2->width;
 
-    if (height1 != height2 || width1 != width2) return NULL;
+    if (height1 != height2 || width1 != width2) {
+        fprintf(stderr, "Matrix sizes for subtraction do not match!");
+        return NULL;
+    }
 
-    imatrix* mSub = (imatrix *) malloc(sizeof(imatrix));
-    mSub->width = width1;
-    mSub->height = height1;
-    mSub->r = malloc(sizeof(uint8_t) * width1 * height1);
-    mSub->g = malloc(sizeof(uint8_t) * width1 * height1);
-    mSub->b = malloc(sizeof(uint8_t) * width1 * height1);
+    imatrix* mSub = init_blank_rgb_image(width1, height1);
+    if (mSub == NULL) {
+        fprintf(stderr, "Allocation for result matrix failed!");
+        return NULL;
+    }
     for (int y = 0; y < height1; y++) {
         for (int x = 0; x < width1; x++) {
             mSub->r[y][x] = m1->r[y][x] - m2->r[y][x] < 0 ? 0 : m1->r[y][x] - m2->r[y][x];
@@ -283,12 +296,11 @@ imatrix* dot(imatrix* m1, imatrix* m2){
     if (m1 == NULL || m2 == NULL) return NULL;
     if (m1->width != m2->height || m2->width < 1) return NULL;
 
-    imatrix* mDot = (imatrix *) malloc(sizeof(imatrix));
-    mDot->height = m1->height;
-    mDot->width = m2->width;  
-    mDot->r = malloc(sizeof(uint8_t) * mDot->width * mDot->height);
-    mDot->g = malloc(sizeof(uint8_t) * mDot->width * mDot->height);
-    mDot->b = malloc(sizeof(uint8_t) * mDot->width * mDot->height);
+    imatrix* mDot = init_blank_rgb_image(m2->width, m1->height);
+    if (mDot == NULL) {
+        fprintf(stderr, "Allocation for result matrix failed!");
+        return NULL;
+    }
     
     int dotProdR = 0, dotProdG = 0, dotProdB = 0;
     for (int dY = 0; dY < mDot->height; dY++) {
@@ -298,6 +310,8 @@ imatrix* dot(imatrix* m1, imatrix* m2){
             dotProdB = 0;
             for (int i = 0; i < m1->width; i++) {
 
+                //Demonstrate knowledge of 2d pointers
+                //Commented code below is the non-pointer equilvalent 
                 dotProdR += *(*(m1->r + dY) + i) * *(*(m2->r + i) + dX);
                 dotProdG += *(*(m1->g + dY) + i) * *(*(m2->g + i) + dX);
                 dotProdB += *(*(m1->b + dY) + i) * *(*(m2->b + i) + dX);
@@ -341,10 +355,6 @@ imatrix* scale(imatrix* this, int width, int height, float alpha){
 
     if (this == NULL) return NULL;
     if (alpha < 0.0 || alpha > 1.0) return this;
-
-    //Assume this is what they mean by the image being invalid? Makes more sense to just override the width/height parameter
-    if (this->width != width) return this;
-    if (this->height != height) return this;
 
     for (int y = 0; y < height; y++) {
         for (int x = 0; x < width; x++) {
